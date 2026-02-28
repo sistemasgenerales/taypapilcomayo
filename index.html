@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistencia QR - Taypa Pilcomayo</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#f4f6f9;
+}
+.wrapper{
+  max-width:520px;
+  margin:auto;
+  padding:20px;
+}
+.card{
+  background:white;
+  border-radius:18px;
+  padding:25px;
+  box-shadow:0 10px 35px rgba(0,0,0,.06);
+  margin-bottom:20px;
+}
+
+/* Nuevos estilos para centrar el Login */
+.text-center {
+  text-align: center;
+}
+.sucursal-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 5px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.login-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 20px 0;
+  font-weight: 500;
+}
+#pin {
+  text-align: center; /* Centra el texto del PIN al escribir */
+  letter-spacing: 2px;
+}
+
+h2{
+  margin:0 0 15px;
+  font-weight:600;
+}
+input,select,button{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  margin-bottom:12px;
+  font-size:16px;
+}
+button{
+  background:#111827;
+  color:white;
+  border:none;
+  cursor:pointer;
+  transition:.2s;
+  font-weight: 600;
+}
+button:hover{background:#1f2937}
+#qr-reader{
+  margin-top:10px;
+  border-radius:14px;
+  overflow:hidden;
+  display:none;
+}
+.status{
+  text-align:center;
+  font-weight:600;
+  min-height:28px;
+  margin-bottom: 10px;
+}
+.success{
+  background:#dcfce7;
+  color:#166534;
+  padding:8px;
+  border-radius:8px;
+}
+.error{
+  background:#fee2e2;
+  color:#991b1b;
+  padding:8px;
+  border-radius:8px;
+}
+.table-box{
+  background:white;
+  border-radius:16px;
+  padding:10px;
+  box-shadow:0 8px 25px rgba(0,0,0,.05);
+  max-height:250px;
+  overflow-y:auto;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:#f3f4f6;
+  padding:8px;
+  position:sticky;
+  top:0;
+}
+td{
+  padding:8px 6px; /* Un poco más de espacio vertical en la tabla */
+  border-top:1px solid #eee;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<div class="card text-center" id="login">
+  <div class="sucursal-title">TAYPA PILCOMAYO</div>
+  <div class="login-subtitle">Acceso Sistema</div>
+  <input type="password" id="pin" placeholder="Ingrese PIN">
+  <button onclick="validarPin()">Ingresar</button>
+</div>
+
+<div id="app" style="display:none;">
+
+<div class="card">
+<h2>Registro de Asistencia</h2>
+
+<select id="tipo">
+<option value="">Seleccionar tipo</option>
+<option value="Entrada">ENTRADA</option>
+<option value="Salida">SALIDA</option>
+<option value="Salida a Refrigerio">SALIDA A REFRIGERIO</option>
+<option value="Entrada a Refrigerio">ENTRADA A REFRIGERIO</option>
+</select>
+
+<button onclick="toggleCamara()" id="btnCamara">Iniciar Cámara</button>
+
+<div id="qr-reader"></div>
+
+<input type="text" id="dniManual" placeholder="Ingresar DNI">
+<input type="text" id="observacion" placeholder="Observación">
+<button onclick="registrarManual()">Registrar Manual</button>
+
+<div class="status" id="mensaje"></div>
+</div>
+
+<div class="table-box">
+<table>
+<thead>
+<tr>
+<th>Hora</th>
+<th>Colaborador</th>
+<th>Tipo de marcación</th>
+</tr>
+</thead>
+<tbody id="historial"></tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbyQrPLTSL3yjcRFkbZnxJy9gzAL3b2LzgxKRbucjee2BYlZtY0dmCziVJ3vuokTCLxX/exec";
+const PIN = "1414";
+
+let qr;
+let camaraActiva = false;
+let ultimoQR = "";
+let ultimoTiempo = 0;
+
+function validarPin(){
+  if(document.getElementById("pin").value === PIN){
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    cargarHistorial();
+  } else {
+    alert("PIN incorrecto");
+  }
+}
+
+// SONIDO PROFESIONAL INTACTO
+function reproducirBeepExito() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+
+    function playNote(frequency, startTime, duration) {
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.value = frequency;
+
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.8, startTime + 0.02); 
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration); 
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    }
+
+    playNote(1200, now, 0.15);         
+    playNote(1600, now + 0.15, 0.25);  
+
+  } catch (e) {
+    console.error("El navegador no soporta el sonido", e);
+  }
+}
+
+function toggleCamara(){
+  camaraActiva ? detenerQR() : iniciarQR();
+}
+
+function iniciarQR(){
+  qr = new Html5Qrcode("qr-reader");
+  document.getElementById("qr-reader").style.display = "block";
+  document.getElementById("btnCamara").innerText = "Detener Cámara";
+  camaraActiva = true;
+
+  qr.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    (decodedText) => {
+      const ahora = Date.now();
+      if(decodedText === ultimoQR && ahora - ultimoTiempo < 2500) return;
+      
+      ultimoQR = decodedText;
+      ultimoTiempo = ahora;
+      
+      reproducirBeepExito();
+      
+      registrar(decodedText.trim(), "QR", "");
+    }
+  ).catch(err => {
+    console.error("Error iniciando cámara:", err);
+    document.getElementById("mensaje").innerHTML = "<div class='error'>Permiso de cámara denegado o dispositivo sin cámara.</div>";
+    detenerQR();
+  });
+}
+
+function detenerQR(){
+  if(qr){
+    qr.stop().then(() => {
+      document.getElementById("qr-reader").style.display = "none";
+      document.getElementById("btnCamara").innerText = "Iniciar Cámara";
+      camaraActiva = false;
+    }).catch(err => console.error("Error deteniendo cámara", err));
+  }
+}
+
+function registrarManual(){
+  const dni = document.getElementById("dniManual").value.trim();
+  const obs = document.getElementById("observacion").value.trim();
+  registrar(dni, "Manual", obs);
+}
+
+function registrar(valor, origen, obs){
+  const tipo = document.getElementById("tipo").value;
+  const mensaje = document.getElementById("mensaje");
+
+  if(!tipo){
+    mensaje.innerHTML = "<div class='error'>Seleccione tipo de asistencia</div>";
+    return;
+  }
+  if(!valor){
+    mensaje.innerHTML = "<div class='error'>Ingrese DNI o EID válido</div>";
+    return;
+  }
+
+  mensaje.innerHTML = "<div class='status'>Registrando en la base de datos... ⏳</div>";
+
+  fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      dni: valor,
+      tipo: tipo,
+      origen: origen,
+      observacion: obs
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.success){
+      mensaje.innerHTML = "<div class='success'>✔ Registro exitoso</div>";
+      document.getElementById("dniManual").value = "";
+      document.getElementById("observacion").value = "";
+      cargarHistorial();
+      
+      setTimeout(() => {
+        if(mensaje.innerHTML.includes("Registro exitoso")) mensaje.innerHTML = "";
+      }, 3000);
+      
+    } else {
+      mensaje.innerHTML = "<div class='error'>❌ " + data.message + "</div>";
+    }
+  })
+  .catch(error => {
+    console.error("Error en conexión:", error);
+    mensaje.innerHTML = "<div class='error'>❌ Error de conexión con Google</div>";
+  });
+}
+
+// CARGA DE HISTORIAL ACTUALIZADA PARA NUEVAS COLUMNAS
+function cargarHistorial(){
+  fetch(API)
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.getElementById("historial");
+    tbody.innerHTML = "";
+    
+    if(!data || data.length === 0){
+       tbody.innerHTML = "<tr><td colspan='3'>No hay registros recientes</td></tr>";
+       return;
+    }
+    
+    data.reverse().forEach(row => {
+      tbody.innerHTML += `
+      <tr>
+        <td>${row.Hora}</td>
+        <td>${row.Colaborador}</td>
+        <td>${row.Tipo}</td>
+      </tr>`;
+    });
+  })
+  .catch(err => console.error("Error cargando historial", err));
+}
+</script>
+
+</body>
+</html>
