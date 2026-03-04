@@ -2,254 +2,335 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Asistencia QR - Taypa Pilcomayo</title>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://unpkg.com/html5-qrcode" defer></script>
 
 <style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:#f4f6f9;
-}
-.wrapper{
-  max-width:520px;
-  margin:auto;
-  padding:20px;
-}
-.card{
-  background:white;
-  border-radius:18px;
-  padding:25px;
-  box-shadow:0 10px 35px rgba(0,0,0,.06);
-  margin-bottom:20px;
-}
+/* DISEÑO LIMPIO Y OPTIMIZADO PARA GAMA BAJA */
+*{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#f4f6f9; color: #111827; }
 
-/* Nuevos estilos para centrar el Login */
-.text-center {
-  text-align: center;
-}
-.sucursal-title {
-  font-size: 26px;
-  font-weight: 800;
-  color: #111827;
-  margin: 0 0 5px 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.login-subtitle {
-  font-size: 16px;
-  color: #6b7280;
-  margin: 0 0 20px 0;
-  font-weight: 500;
-}
-#pin {
-  text-align: center; /* Centra el texto del PIN al escribir */
-  letter-spacing: 2px;
-}
+/* TOPBAR */
+.topbar { background: white; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 50; width: 100%; }
+.menuBtn { background: none; border: none; font-size: 26px; color: #111827; cursor: pointer; padding: 0; width: 30px; }
+.topbar-titles { display: flex; flex-direction: column; align-items: center; flex-grow: 1; pointer-events: none;}
+.topbar-title { font-size: 19px; font-weight: 900; margin: 0; line-height: 1.1; color: #111827;}
+.topbar-sub { font-size: 13px; color: #6b7280; font-weight: 700; margin-top: 2px;}
+.topbar-spacer { width: 30px; }
 
-h2{
-  margin:0 0 15px;
-  font-weight:600;
-}
-input,select,button{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  margin-bottom:12px;
-  font-size:16px;
-}
-button{
-  background:#111827;
-  color:white;
-  border:none;
-  cursor:pointer;
-  transition:.2s;
-  font-weight: 600;
-}
-button:hover{background:#1f2937}
-#qr-reader{
-  margin-top:10px;
-  border-radius:14px;
-  overflow:hidden;
-  display:none;
-}
-.status{
-  text-align:center;
-  font-weight:600;
-  min-height:28px;
-  margin-bottom: 10px;
-}
-.success{
-  background:#dcfce7;
-  color:#166534;
-  padding:8px;
-  border-radius:8px;
-}
-.error{
-  background:#fee2e2;
-  color:#991b1b;
-  padding:8px;
-  border-radius:8px;
-}
-.table-box{
-  background:white;
-  border-radius:16px;
-  padding:10px;
-  box-shadow:0 8px 25px rgba(0,0,0,.05);
-  max-height:250px;
-  overflow-y:auto;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
-th{
-  background:#f3f4f6;
-  padding:8px;
-  position:sticky;
-  top:0;
-}
-td{
-  padding:8px 6px; /* Un poco más de espacio vertical en la tabla */
-  border-top:1px solid #eee;
-  text-align:center;
-}
+/* SIDEBAR MÓVIL */
+#sidebarBackdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+#sidebarBackdrop.open { opacity: 1; pointer-events: all; }
+#sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 260px; background: white; z-index: 100; transform: translateX(-100%); transition: transform 0.2s; display: flex; flex-direction: column; padding: 30px 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.15); }
+#sidebar.open { transform: translateX(0); }
+.sideHeader { font-size: 24px; font-weight: 900; margin-bottom: 30px; text-align: center; color: #111827; letter-spacing: 1px;}
+.sideItem { background: none; border: none; color: #4b5563; text-align: left; padding: 15px; font-size: 17px; font-weight: 700; border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: 0.2s;}
+.sideItem.active { background: #eff6ff; color: #2563eb; }
+
+/* CONTENEDORES Y TARJETAS */
+.wrapper{ max-width:520px; margin:auto; padding:20px; display: flex; flex-direction: column; align-items: center; }
+.card{ background:white; border-radius:18px; padding:25px; box-shadow:0 10px 35px rgba(0,0,0,.06); margin-bottom:20px; width: 100%; max-width: 480px; }
+.text-center { text-align: center; }
+
+/* LOGIN */
+.sucursal-title { font-size: 26px; font-weight: 800; color: #111827; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 1px; text-align: center;}
+.login-subtitle { font-size: 16px; color: #6b7280; margin: 0 0 20px 0; font-weight: 500; text-align: center;}
+#pin { text-align: center; letter-spacing: 2px; font-size: 22px; font-weight: bold;}
+
+/* FORMULARIOS GLOBALES */
+.view-title { text-align: center; margin: 0 0 15px; font-weight: 700; font-size: 22px; color: #111827;}
+input, select, button { width:100%; padding:14px; border-radius:12px; border:1px solid #d1d5db; margin-bottom:12px; font-size:16px; background: white; outline:none; color: #111827;}
+select { text-align-last: center; font-weight: 600;} 
+input:focus, select:focus { border-color: #2563eb; }
+button { background:#111827; color:white; border:none; cursor:pointer; font-weight: 700; font-size: 16px; transition: .1s; }
+button:active { transform: scale(0.96); background:#1f2937; }
+
+/* BOTÓN ACTUALIZAR FIJO */
+.btn-refresh { background: #2563eb; color: white; padding: 16px; font-size: 18px; font-weight: 800; border-radius: 14px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px;}
+.btn-refresh:active { background: #1d4ed8; }
+
+/* CÁMARA Y ESTADOS */
+#qr-reader{ margin-top:10px; border-radius:14px; overflow:hidden; display:none; border: 2px solid #e5e7eb; width: 100%; background: #000;}
+.divider { text-align:center; font-size:13px; color:#9ca3af; font-weight:800; margin: 20px 0 15px; letter-spacing: 1px; }
+
+/* AREA DE MENSAJES */
+.status-area { min-height: 45px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.status-msg { width: 100%; text-align: center; font-weight: 700; padding: 12px; border-radius: 10px; font-size: 15px; line-height: 1.4; animation: popIn 0.2s ease; }
+@keyframes popIn { 0% { opacity:0; transform:scale(0.95); } 100% { opacity:1; transform:scale(1); } }
+.status-msg.success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;}
+.status-msg.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;}
+.status-msg.loading { color: #4b5563; font-weight: 600; background: #f3f4f6; border: 1px solid #e5e7eb;}
+
+/* PANEL SUPERVISOR */
+.panelLegend{ font-size:12px; color:#4b5563; margin-bottom:15px; background:white; padding:12px; border-radius:12px; text-align:center; border: 1px solid #f3f4f6; width: 100%; max-width: 480px;}
+.search-bar { border: 2px solid #e5e7eb; border-radius: 12px; padding: 14px; font-weight: 600; font-size: 15px; background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%236b7280" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 15px center; padding-left: 40px; margin-bottom: 20px;}
+.search-bar:focus { border-color: #2563eb; }
+.panel-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #e5e7eb; width: 100%; max-width: 480px;}
+.pc-header { border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; margin-bottom: 10px; text-align: center; }
+.pc-name { font-weight: 800; font-size: 16px; line-height: 1.2; color: #111827;}
+.pc-sub { font-size: 13px; color: #6b7280; font-weight: 600; margin-top: 4px; }
+.pc-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f3f4f6; }
+.pc-row:last-child { border-bottom: none; padding-bottom: 0; }
+.pc-label { font-weight: 600; color: #6b7280; font-size: 13px; }
+.pc-val { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; color: #111827;}
+.st-A{ color: #166534; } .st-T{ color: #d97706; } .st-F{ color: #991b1b; }
+.tdSelect{ padding:6px 8px; font-size:14px; margin:0; border:1px solid #d1d5db; background:#f9fafb; font-weight: 700; border-radius: 8px; outline: none; text-align: center;}
+.tdBtn{ width:36px; height:36px; padding:0; background:#f3f4f6; border: 1px solid #e5e7eb; border-radius:8px; font-size:16px; display:inline-flex; align-items:center; justify-content:center; color: #111;}
+
+/* MODAL LIGERO */
+.modalMask { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modalMask.show { display: flex; }
+.modalBox { background: white; width: 100%; max-width: 380px; border-radius: 20px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);}
+.modalBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;}
+.btnDanger { background: #fee2e2; color: #991b1b; border:none; }
 </style>
 </head>
 
 <body>
 
-<div class="wrapper">
+<audio id="sndClick" src="https://actions.google.com/sounds/v1/ui/button_click.ogg" preload="auto"></audio>
+<audio id="sndSuccess" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+<audio id="sndError" src="https://actions.google.com/sounds/v1/alarms/mechanical_buzzer.ogg" preload="auto"></audio>
 
-<div class="card text-center" id="login">
-  <div class="sucursal-title">TAYPA PILCOMAYO</div>
-  <div class="login-subtitle">Acceso Sistema</div>
-  <input type="password" id="pin" placeholder="Ingrese PIN">
-  <button onclick="validarPin()">Ingresar</button>
+<div class="wrapper" id="loginWrap">
+  <div class="card text-center" style="margin-top: 5vh;">
+    <div class="sucursal-title">TAYPA PILCOMAYO</div>
+    <div class="login-subtitle">Acceso al Sistema</div>
+    <input type="password" id="pin" placeholder="Ingresa tu PIN" inputmode="numeric">
+    <button onclick="iniciarSesion()">Ingresar</button>
+  </div>
 </div>
 
-<div id="app" style="display:none;">
+<div id="app" style="display:none; width: 100%;">
+  
+  <header class="topbar">
+    <button class="menuBtn" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-titles">
+      <div class="topbar-title" id="topbarTitle">Registro QR</div>
+      <div class="topbar-sub">TAYPA PILCOMAYO</div>
+    </div>
+    <div class="topbar-spacer"></div>
+  </header>
 
-<div class="card">
-<h2>Registro de Asistencia</h2>
+  <div id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+ 
+  <nav id="sidebar">
+    <div class="sideHeader">TAYPA PILCOMAYO</div>
+    <button id="btnNavQR" class="sideItem active" onclick="switchView('qr')">📸 Escáner QR</button>
+    <button id="btnNavPanel" class="sideItem" onclick="switchView('panel')">📊 Panel Supervisor</button>
+    
+    <div style="flex-grow: 1;"></div>
+    <button class="sideItem" style="color: #991b1b;" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
+  </nav>
 
-<select id="tipo">
-<option value="">Seleccionar tipo</option>
-<option value="Entrada">ENTRADA</option>
-<option value="Salida">SALIDA</option>
-<option value="Salida a Refrigerio">SALIDA A REFRIGERIO</option>
-<option value="Entrada a Refrigerio">ENTRADA A REFRIGERIO</option>
-</select>
+  <div class="wrapper">
+    
+    <div id="viewQR" style="width: 100%;">
+      <div class="card text-center" style="margin: auto;">
+        <h2 class="view-title">Registro de Asistencia</h2>
 
-<button onclick="toggleCamara()" id="btnCamara">Iniciar Cámara</button>
+        <select id="tipo">
+          <option value="">Seleccionar tipo</option>
+          <option value="Entrada">ENTRADA</option>
+          <option value="Salida">SALIDA</option>
+          <option value="Salida Refrigerio">SALIDA A REFRIGERIO</option>
+          <option value="Entrada Refrigerio">ENTRADA A REFRIGERIO</option>
+        </select>
 
-<div id="qr-reader"></div>
+        <button onclick="toggleCamara()" id="btnCamara" style="background:#2563eb;">📸 Iniciar Cámara</button>
+        <div id="mensajeArea" class="status-area" style="display:none;"></div>
+        <div id="qr-reader"></div>
 
-<input type="text" id="dniManual" placeholder="Ingresar DNI">
-<input type="text" id="observacion" placeholder="Observación">
-<button onclick="registrarManual()">Registrar Manual</button>
+        <div class="divider">O INGRESO MANUAL</div>
+        <input type="text" id="dniManual" placeholder="Ingresar DNI" inputmode="numeric">
+  
+        <input type="text" id="observacion" placeholder="Observación (Opcional)">
+        <button onclick="registrarManual()">Registrar Manual</button>
+      </div>
+    </div>
 
-<div class="status" id="mensaje"></div>
+    <div id="viewPanel" style="display:none; width: 100%; max-width: 480px; margin: auto;">
+      
+      <button onclick="loadPanelData()" class="btn-refresh">🔄 Cargar / Actualizar Datos</button>
+
+      <div class="panelLegend">
+        <strong>Estados:</strong> A:Asistió, T:Tarde, F:Falta, V:Vacaciones, DL:Día Libre, DM:Descanso Médico, S:Suspensión.
+      </div>
+      
+      <input type="text" id="buscadorPanel" class="search-bar" placeholder="Buscar colaborador..." onkeyup="filtrarPanel()">
+
+      <div id="panelCardsContainer" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+        <div class="card text-center" style="font-weight:600; color:#4b5563; box-shadow:none; border: 1px solid #e5e7eb;">Usa el botón para cargar los datos.</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-<div class="table-box">
-<table>
-<thead>
-<tr>
-<th>Hora</th>
-<th>Colaborador</th>
-<th>Tipo de marcación</th>
-</tr>
-</thead>
-<tbody id="historial"></tbody>
-</table>
-</div>
-
-</div>
+<div id="modalMask" class="modalMask">
+  <div class="modalBox">
+    <h2 id="modalTitle" style="text-align:center; margin-top:0; font-weight:800; color:#111827;">Editar</h2>
+    <input id="modalInput" type="text" autocomplete="off" style="text-align:center; font-weight:800; font-size:24px;">
+    <textarea id="modalArea" style="display:none; width:100%; min-height:100px; padding:15px; border-radius:12px; border:1px solid #d1d5db; outline:none; font-size:15px; font-family:inherit; text-align: center;"></textarea>
+    <div class="modalBtns">
+      <button class="btnDanger" onclick="closeModal()">Cancelar</button>
+      <button onclick="guardarModal()" style="background:#2563eb; color:white;">Guardar</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyQrPLTSL3yjcRFkbZnxJy9gzAL3b2LzgxKRbucjee2BYlZtY0dmCziVJ3vuokTCLxX/exec";
-const PIN = "1414";
+// ==========================================
+// CONFIGURACIÓN PRINCIPAL
+// ==========================================
+const API = "https://script.google.com/macros/s/AKfycbwe0rF1yjIdHO_wKrMTF47TMHM4L4g45s8dP7Na3eLSSBa1trSKxL6tm7jxHk0984zh/exec";
+let sessionToken = null;
 
-let qr;
-let camaraActiva = false;
-let ultimoQR = "";
-let ultimoTiempo = 0;
+// ==========================================
+// MAGIA "MODO BALA": BASE DE DATOS ESPEJO
+// ==========================================
+let dbEspejo = { byEid: {}, byDoc: {} };
+let marcacionesLocales = {}; 
 
-function validarPin(){
-  if(document.getElementById("pin").value === PIN){
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    cargarHistorial();
-  } else {
-    alert("PIN incorrecto");
-  }
+function cargarEspejo() {
+  const localData = localStorage.getItem('dbEspejo_TaypaPilcomayo');
+  if(localData) dbEspejo = JSON.parse(localData);
+  
+  fetch(API, { method: "POST", body: JSON.stringify({ action: "sync_espejo" }) })
+  .then(r => r.json())
+  .then(res => {
+     if(res.ok && res.data) {
+       dbEspejo = res.data;
+       localStorage.setItem('dbEspejo_TaypaPilcomayo', JSON.stringify(dbEspejo));
+     }
+  }).catch(()=>{});
 }
 
-// SONIDO PROFESIONAL INTACTO
-function reproducirBeepExito() {
+cargarEspejo();
+
+// ==========================================
+// AUDIO PROFESIONAL CON RESPALDO (FALLBACK)
+// ==========================================
+function playAudio(tipo) {
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = audioCtx.currentTime;
-
-    function playNote(frequency, startTime, duration) {
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-
-      oscillator.type = 'sine';
-      oscillator.frequency.value = frequency;
-
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.8, startTime + 0.02); 
-      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration); 
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
+    const snd = document.getElementById(tipo === 'exito' ? 'sndSuccess' : tipo === 'error' ? 'sndError' : 'sndClick');
+    if(snd) { 
+        snd.currentTime = 0; 
+        snd.volume = 1.0;
+        let p = snd.play();
+        if(p !== undefined) {
+            p.catch(e => {
+                if(tipo === 'error') playFallbackBeep();
+            });
+        }
     }
+  } catch(e) {}
+}
 
-    playNote(1200, now, 0.15);         
-    playNote(1600, now + 0.15, 0.25);  
+function playFallbackBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth'; osc.frequency.value = 150;
+    osc.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.3);
+  } catch(e){}
+}
 
-  } catch (e) {
-    console.error("El navegador no soporta el sonido", e);
+// ==========================================
+// NAVEGACIÓN Y SESIÓN
+// ==========================================
+function iniciarSesion() {
+  const pin = document.getElementById('pin').value.trim();
+  if (!pin) return alert("Ingrese el PIN");
+  
+  const btn = document.querySelector('#loginWrap button');
+  btn.innerText = "Verificando..."; btn.disabled = true;
+  fetch(API, { method: "POST", body: JSON.stringify({ action: 'login_panel', pin: pin }) })
+  .then(res => res.json()).then(data => {
+    btn.innerText = "Ingresar"; btn.disabled = false;
+    if (data.ok) {
+      sessionToken = data.token;
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('pin').value = '';
+      cargarEspejo(); 
+    } else { alert("PIN Incorrecto"); }
+  }).catch(() => { btn.innerText = "Ingresar"; btn.disabled = false; alert("Error de red"); });
+}
+
+function cerrarSesion() {
+  if (confirm("¿Seguro que deseas salir?")) {
+    sessionToken = null;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginWrap').style.display = 'block';
+    toggleSidebar(false); detenerQR();
   }
 }
 
-function toggleCamara(){
-  camaraActiva ? detenerQR() : iniciarQR();
+function toggleSidebar(forceClose = false) {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (sidebar.classList.contains('open') || forceClose) {
+    sidebar.classList.remove('open'); backdrop.classList.remove('open');
+  } else {
+    sidebar.classList.add('open'); backdrop.classList.add('open');
+  }
 }
+
+function switchView(viewName) {
+  document.getElementById('viewQR').style.display = 'none';
+  document.getElementById('viewPanel').style.display = 'none';
+  document.getElementById('btnNavQR').classList.remove('active');
+  document.getElementById('btnNavPanel').classList.remove('active');
+  if (viewName === 'qr') {
+    document.getElementById('viewQR').style.display = 'block';
+    document.getElementById('btnNavQR').classList.add('active');
+    document.getElementById('topbarTitle').innerText = "Registro QR";
+  } else {
+    document.getElementById('viewPanel').style.display = 'block';
+    document.getElementById('btnNavPanel').classList.add('active');
+    document.getElementById('topbarTitle').innerText = "Panel Supervisor";
+    detenerQR(); 
+  }
+  toggleSidebar(true);
+}
+
+function mostrarMensaje(texto, estilo) {
+  const area = document.getElementById("mensajeArea");
+  area.style.display = "flex";
+  area.innerHTML = `<div class="status-msg ${estilo}">${texto}</div>`;
+  if (estilo !== 'loading') {
+    setTimeout(() => { area.style.display = "none"; }, 3500);
+  }
+}
+
+// ==========================================
+// CÁMARA OPTIMIZADA
+// ==========================================
+let qr; let camaraActiva = false; let ultimoQR = ""; let ultimoTiempo = 0;
+function toggleCamara(){ camaraActiva ? detenerQR() : iniciarQR(); }
 
 function iniciarQR(){
   qr = new Html5Qrcode("qr-reader");
   document.getElementById("qr-reader").style.display = "block";
-  document.getElementById("btnCamara").innerText = "Detener Cámara";
+  document.getElementById("btnCamara").innerText = "🛑 Detener Cámara";
+  document.getElementById("btnCamara").style.background = "#991b1b";
   camaraActiva = true;
-
   qr.start(
     { facingMode: "environment" },
-    { fps: 10, qrbox: { width: 250, height: 250 } },
+    { fps: 15, qrbox: { width: 230, height: 230 }, disableFlip: true },
     (decodedText) => {
       const ahora = Date.now();
-      if(decodedText === ultimoQR && ahora - ultimoTiempo < 2500) return;
+      if(decodedText === ultimoQR && ahora - ultimoTiempo < 2000) return; 
+      ultimoQR = decodedText; ultimoTiempo = ahora;
       
-      ultimoQR = decodedText;
-      ultimoTiempo = ahora;
-      
-      reproducirBeepExito();
-      
+      playAudio('click'); 
       registrar(decodedText.trim(), "QR", "");
     }
   ).catch(err => {
-    console.error("Error iniciando cámara:", err);
-    document.getElementById("mensaje").innerHTML = "<div class='error'>Permiso de cámara denegado o dispositivo sin cámara.</div>";
+    mostrarMensaje("⚠️ Da acceso a la cámara.", "error");
     detenerQR();
   });
 }
@@ -258,9 +339,11 @@ function detenerQR(){
   if(qr){
     qr.stop().then(() => {
       document.getElementById("qr-reader").style.display = "none";
-      document.getElementById("btnCamara").innerText = "Iniciar Cámara";
+      const btn = document.getElementById("btnCamara");
+      btn.innerText = "📸 Iniciar Cámara";
+      btn.style.background = "#2563eb";
       camaraActiva = false;
-    }).catch(err => console.error("Error deteniendo cámara", err));
+    }).catch(err => {});
   }
 }
 
@@ -270,78 +353,223 @@ function registrarManual(){
   registrar(dni, "Manual", obs);
 }
 
+// ==========================================
+// FUNCIÓN REGISTRO "MODO BALA"
+// ==========================================
 function registrar(valor, origen, obs){
   const tipo = document.getElementById("tipo").value;
-  const mensaje = document.getElementById("mensaje");
+  if(!tipo){ playAudio('error'); mostrarMensaje("⚠️ Selecciona tipo de asistencia", "error"); return; }
+  if(!valor){ playAudio('error'); mostrarMensaje("⚠️ Ingrese QR/DNI", "error"); return; }
 
-  if(!tipo){
-    mensaje.innerHTML = "<div class='error'>Seleccione tipo de asistencia</div>";
+  let emp = null;
+  if (origen === "Manual") {
+    emp = dbEspejo.byDoc[valor.replace(/\D/g, '').trim()];
+  } else {
+    emp = dbEspejo.byEid[valor.trim()];
+  }
+
+  if (!emp) {
+    ejecutarRegistroServidor(valor, origen, obs, tipo);
     return;
   }
-  if(!valor){
-    mensaje.innerHTML = "<div class='error'>Ingrese DNI o EID válido</div>";
+
+  // ALERTA ROJA INMEDIATA DESDE EL CELULAR
+  const hoy = new Date().toISOString().split('T')[0];
+  const dupKey = `${hoy}_${emp.doc}_${tipo}`;
+  if (marcacionesLocales[dupKey]) {
+    playAudio('error'); 
+    mostrarMensaje(`⚠️ Ya registraste "${tipo}" hoy.`, "error"); 
     return;
   }
 
-  mensaje.innerHTML = "<div class='status'>Registrando en la base de datos... ⏳</div>";
+  // Guardado optimista
+  marcacionesLocales[dupKey] = true;
+  playAudio('exito'); 
+  mostrarMensaje(`✔ REGISTRADO<br>${emp.nombre}`, "success");
+  document.getElementById("dniManual").value = ""; 
+  document.getElementById("observacion").value = "";
 
+  // Envío a Google en silencio (El bloqueo de backend fue eliminado para que confíe en la hoja)
   fetch(API, {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({
-      dni: valor,
-      tipo: tipo,
-      origen: origen,
-      observacion: obs
-    })
+    body: JSON.stringify({ action: "registrar_qr", dni: valor, tipo: tipo, origen: origen, observacion: obs })
   })
   .then(res => res.json())
   .then(data => {
-    if(data.success){
-      mensaje.innerHTML = "<div class='success'>✔ Registro exitoso</div>";
-      document.getElementById("dniManual").value = "";
-      document.getElementById("observacion").value = "";
-      cargarHistorial();
-      
-      setTimeout(() => {
-        if(mensaje.innerHTML.includes("Registro exitoso")) mensaje.innerHTML = "";
-      }, 3000);
-      
-    } else {
-      mensaje.innerHTML = "<div class='error'>❌ " + data.message + "</div>";
-    }
+     if(!data.ok) {
+         delete marcacionesLocales[dupKey]; 
+         playAudio('error');
+         mostrarMensaje(`❌ Error del sistema: ${data.msg}`, "error");
+     }
   })
-  .catch(error => {
-    console.error("Error en conexión:", error);
-    mensaje.innerHTML = "<div class='error'>❌ Error de conexión con Google</div>";
+  .catch(e => { 
+     delete marcacionesLocales[dupKey]; 
+     playAudio('error');
+     mostrarMensaje("❌ Error guardando en Google.", "error"); 
   });
 }
 
-// CARGA DE HISTORIAL ACTUALIZADA PARA NUEVAS COLUMNAS
-function cargarHistorial(){
-  fetch(API)
+function ejecutarRegistroServidor(valor, origen, obs, tipo) {
+  mostrarMensaje("Buscando en Servidor... 🚀", "loading");
+  fetch(API, {
+    method: "POST",
+    body: JSON.stringify({ action: "registrar_qr", dni: valor, tipo: tipo, origen: origen, observacion: obs })
+  })
   .then(res => res.json())
   .then(data => {
-    const tbody = document.getElementById("historial");
-    tbody.innerHTML = "";
-    
-    if(!data || data.length === 0){
-       tbody.innerHTML = "<tr><td colspan='3'>No hay registros recientes</td></tr>";
-       return;
+    if(data.ok){
+      playAudio('exito'); 
+      mostrarMensaje(`✔ REGISTRADO<br>${data.show.nombre}`, "success");
+      document.getElementById("dniManual").value = ""; document.getElementById("observacion").value = "";
+    } else {
+      playAudio('error'); 
+      mostrarMensaje(`❌ ${data.msg}`, "error");
     }
-    
-    data.reverse().forEach(row => {
-      tbody.innerHTML += `
-      <tr>
-        <td>${row.Hora}</td>
-        <td>${row.Colaborador}</td>
-        <td>${row.Tipo}</td>
-      </tr>`;
-    });
   })
-  .catch(err => console.error("Error cargando historial", err));
+  .catch(() => { playAudio('error'); mostrarMensaje("❌ Error de internet.", "error"); });
+}
+
+// ==========================================
+// PANEL SUPERVISOR Y BUSCADOR
+// ==========================================
+let editContext = null; let modalMode = null;
+
+function loadPanelData() {
+  document.getElementById('buscadorPanel').value = ''; // Limpiar buscador al cargar
+  const container = document.getElementById('panelCardsContainer');
+  container.innerHTML = '<div class="card text-center" style="font-weight:600; color:#2563eb; border: 1px solid #bfdbfe; background:#eff6ff;">⏳ Descargando últimos registros...</div>';
+  fetch(API, { method: "POST", body: JSON.stringify({ action: 'get_panel', token: sessionToken }) })
+  .then(res => res.json()).then(res => {
+    if (!res.ok) {
+       container.innerHTML = `<div class="card text-center" style="color:#991b1b; font-weight:bold;">❌ Error: ${res.msg}</div>`;
+       return;
+    } 
+    renderPanelCards(res.rows, res.estados);
+  }).catch(() => {
+    container.innerHTML = '<div class="card text-center" style="color:#991b1b; font-weight:bold;">❌ Error de conexión</div>';
+  });
+}
+
+function renderPanelCards(rows, estados) {
+  const container = document.getElementById('panelCardsContainer');
+  container.innerHTML = '';
+  if (!rows || rows.length === 0) {
+    container.innerHTML = '<div class="card text-center" style="font-weight:600; color:#6b7280; box-shadow:none; border: 1px solid #e5e7eb;">No hay registros recientes.</div>';
+    return;
+  }
+
+  rows.reverse().forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'panel-card';
+    
+    let html = `
+      <div class="pc-header">
+        <div class="pc-name">${r.colab}</div>
+        <div class="pc-sub">[${r.estado}] ${r.tipo||'Sin Marcación'}</div>
+      </div>
+      <div class="pc-row">
+        <span class="pc-label">Tareo Actual:</span>
+        <span class="pc-val st-${r.tareo}">${r.tareo || 'Ninguno'}</span>
+      </div>
+      <div class="pc-row">
+        <span class="pc-label">Min. Tardanza:</span>
+        <span class="pc-val" style="color:${r.min>0?'#991b1b':'inherit'}">${r.min || '0'}</span>
+      </div>
+    `;
+    card.innerHTML = html;
+
+    const rowT = document.createElement('div'); rowT.className = 'pc-row';
+    rowT.innerHTML = `<span class="pc-label">Editar Tareo:</span>`;
+    const sel = document.createElement('select'); sel.className = 'tdSelect';
+    estados.forEach(e => {
+      const opt = document.createElement('option'); opt.value = e; opt.textContent = e || '-';
+      if (r.newT === e) opt.selected = true; sel.appendChild(opt);
+    });
+    if (r.remG <= 0) sel.disabled = true;
+    
+    sel.onchange = () => {
+      sel.disabled = true; 
+      fetch(API, { method: "POST", body: JSON.stringify({ action: 'update_cell', token: sessionToken, fila: r.fila, colLetra: 'G', valor: sel.value })})
+      .then(res => res.json()).then(res => { 
+        if (!res.unchanged && res.remaining <= 0) sel.disabled = true; else sel.disabled = false; 
+      })
+      .catch(()=>{ alert("Error al guardar"); sel.value = r.newT; sel.disabled = false;});
+    };
+    
+    const wrapSel = document.createElement('span'); wrapSel.className = 'pc-val'; wrapSel.appendChild(sel);
+    rowT.appendChild(wrapSel); card.appendChild(rowT);
+
+    const rowM = document.createElement('div'); rowM.className = 'pc-row';
+    rowM.innerHTML = `<span class="pc-label">Editar Minutos:</span>`;
+    const wrapM = document.createElement('span'); wrapM.className = 'pc-val';
+    wrapM.appendChild(createEditBtn(r.newM, r.remH, 'H', r.fila, true));
+    rowM.appendChild(wrapM); card.appendChild(rowM);
+
+    const rowO = document.createElement('div'); rowO.className = 'pc-row';
+    rowO.innerHTML = `<span class="pc-label">Observación:</span>`;
+    const wrapO = document.createElement('span'); wrapO.className = 'pc-val';
+    wrapO.appendChild(createEditBtn(r.obs, r.remI, 'I', r.fila, false));
+    rowO.appendChild(wrapO); card.appendChild(rowO);
+
+    container.appendChild(card);
+  });
+}
+
+// FUNCIÓN DEL BUSCADOR
+function filtrarPanel() {
+  const input = document.getElementById('buscadorPanel').value.toLowerCase();
+  const tarjetas = document.querySelectorAll('#panelCardsContainer .panel-card');
+  
+  tarjetas.forEach(tarjeta => {
+    const nombre = tarjeta.querySelector('.pc-name').textContent.toLowerCase();
+    if (nombre.includes(input)) {
+      tarjeta.style.display = 'block';
+    } else {
+      tarjeta.style.display = 'none';
+    }
+  });
+}
+
+function createEditBtn(val, rem, colLetra, fila, isNum) {
+  const wrap = document.createElement('div'); wrap.style.display = 'flex'; wrap.style.alignItems = 'center'; wrap.style.gap = '8px';
+  const span = document.createElement('span'); span.textContent = val || '-';
+  const btn = document.createElement('button'); btn.className = 'tdBtn'; btn.innerHTML = '✏️';
+  if (rem <= 0) btn.style.display = 'none';
+  btn.onclick = () => { editContext = { fila: fila, col: colLetra, spanElement: span, btnElement: btn }; openModal(isNum ? 'panel_min' : 'panel_obs', val); };
+  wrap.append(span, btn); return wrap;
+}
+
+const mMask = document.getElementById('modalMask'); const mInput = document.getElementById('modalInput'); const mArea = document.getElementById('modalArea');
+function openModal(mode, initialValue) {
+  modalMode = mode; mInput.style.display = 'none'; mArea.style.display = 'none';
+  if (mode === 'panel_min') { 
+    document.getElementById('modalTitle').textContent = 'Escribir Minutos'; 
+    mInput.style.display = 'block'; mInput.value = initialValue==='-'?'':initialValue; mInput.setAttribute('inputmode', 'numeric'); 
+  } else { 
+    document.getElementById('modalTitle').textContent = 'Escribir Observación'; 
+    mArea.style.display = 'block'; mArea.value = initialValue==='-'?'':initialValue; 
+  }
+  mMask.classList.add('show');
+}
+
+function closeModal() { mMask.classList.remove('show'); mInput.blur(); mArea.blur(); modalMode = null; }
+
+function guardarModal() {
+  let val = modalMode === 'panel_min' ? mInput.value.trim() : mArea.value.trim();
+  if (editContext) {
+    const { fila, col, spanElement, btnElement } = editContext;
+    if (col === 'H' && val && isNaN(val)) { alert('Solo números'); return; }
+    
+    closeModal(); btnElement.disabled = true;
+    const oldVal = spanElement.textContent; spanElement.textContent = val || '-'; 
+    
+    fetch(API, { method: "POST", body: JSON.stringify({ action: 'update_cell', token: sessionToken, fila: fila, colLetra: col, valor: val })})
+    .then(res => res.json()).then(res => {
+      if (res.ok) { if (!res.unchanged && res.remaining <= 0) btnElement.style.display = 'none'; btnElement.disabled = false; } 
+      else { alert(res.msg); spanElement.textContent = oldVal; btnElement.disabled = false; }
+    }).catch(()=>{ alert("Error de red."); spanElement.textContent = oldVal; btnElement.disabled = false; });
+  }
 }
 </script>
-
 </body>
 </html>
